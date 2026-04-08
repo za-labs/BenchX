@@ -66,7 +66,7 @@ function CollapsibleSection({ title, children, defaultOpen = false }) {
 function CopyEmailButton() {
   const [copied, setCopied] = React.useState(false)
   function copy() {
-    navigator.clipboard.writeText('hello@toplinelabs.io').then(() => {
+    navigator.clipboard.writeText('hello@mizab.io').then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
@@ -83,7 +83,7 @@ function CopyEmailButton() {
         transition: 'opacity .15s',
       }}
     >
-      <span>hello@toplinelabs.io</span>
+      <span>hello@mizab.io</span>
       <span style={{ fontSize: '0.75rem', color: 'var(--accent-text)', opacity: 0.7 }}>
         {copied ? '✓ Copied' : '⎘ Copy'}
       </span>
@@ -138,12 +138,19 @@ export default function App() {
       <header style={{ padding: '3rem 0 2rem', borderBottom: '1px solid var(--border)', marginBottom: '2rem' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <h1 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', color: 'var(--text)', lineHeight: 1.1, marginBottom: 10, whiteSpace: 'nowrap' }}>
-              BenchX
-            </h1>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5, marginBottom: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <h1 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', fontFamily: 'var(--font-display)', fontWeight: 300, lineHeight: 1.1, letterSpacing: '-0.02em', margin: 0 }}>
+                  <span style={{ color: 'var(--text)' }}>Bench</span><span style={{ color: '#2dd4bf' }}>X</span>
+                </h1>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#2dd4bf', opacity: 0.85 }}>SaaS Benchmarks</span>
+              </div>
+              <div style={{ fontSize: '0.62rem', color: 'var(--text-3)', lineHeight: 1.4 }}>
+                Built by <a href="https://mizab.io" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-3)', textDecoration: 'underline' }} onMouseEnter={e => e.target.style.color='var(--accent)'} onMouseLeave={e => e.target.style.color='var(--text-3)'}>mizab.io</a>
+              </div>
+            </div>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-2)', maxWidth: 520, lineHeight: 1.7 }}>
-              Compare your company metrics against hundreds of SaaS businesses.<br />
-              Know where you stand against peers, and how to get ahead.
+              Every investor has these numbers. Most founders don't. See exactly where your metrics stand against hundreds of SaaS companies, and what to prioritize to close the gap.
             </p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 16 }}>
@@ -183,16 +190,9 @@ export default function App() {
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Privacy notice */}
-      <div style={{
-        fontSize: '0.72rem', color: 'var(--text-3)',
-        padding: '0.6rem 1rem', marginBottom: '1rem',
-        background: 'var(--bg-2)', border: '1px solid var(--border)',
-        borderRadius: 'var(--radius)',
-      }}>
-        Your metrics are not stored and not used to train any models.
+        <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)', fontSize: '0.7rem', color: 'var(--text-3)' }}>
+          Your metrics are not stored and not used to train any models.
+        </div>
       </div>
 
       {/* Peer group */}
@@ -326,6 +326,9 @@ export default function App() {
 
       {/* Feedback — collapsible */}
       <CollapsibleSection title="Feedback" defaultOpen={true}>
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-2)', lineHeight: 1.7, marginBottom: '0.5rem' }}>
+          Built by <a href="https://mizab.io" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-2)', textDecoration: 'underline' }}>mizab.io</a>.
+        </p>
         <p style={{ fontSize: '0.82rem', color: 'var(--text-2)', lineHeight: 1.7, marginBottom: '1rem' }}>
           Feedback, comments or suggestions? Get in touch:
         </p>
@@ -369,8 +372,10 @@ export default function App() {
             ))}
           </div>
           <p style={{ fontSize: '0.7rem', color: 'var(--text-3)', marginTop: 8, lineHeight: 1.5 }}>
-            For lower-is-better metrics (CAC Payback, Burn Multiple, S&amp;M spend), the scale is inverted.
-            Ratings use Benchmark.it as primary source, falling back to High Alpha where BI data is unavailable.
+            For lower-is-better metrics (CAC Payback, Burn Multiple, S&amp;M, R&amp;D spend), the scale is inverted — a lower % is treated as better.
+          </p>
+          <p style={{ fontSize: '0.7rem', color: 'var(--text-3)', marginTop: 6, lineHeight: 1.5 }}>
+            The flag on each card is a consensus rating, not a single-source result. Every applicable source casts a vote (Benchmark.it by ARR, High Alpha, Serena by ARR, and where selected, Serena by funding stage, Benchmark.it by ACV, and by pricing model). Votes are averaged numerically and snapped to the nearest quartile. Sources with only a median datapoint and no P25/P75 are excluded from voting.
           </p>
         </div>
       </CollapsibleSection>

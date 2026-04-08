@@ -70,7 +70,7 @@ export default function AnalysisPanel({ userVals, arrBand, acvBand, pricingModel
         }
       }
     } catch {
-      setAnalysis('_Could not connect to server. Make sure the API is running._')
+      setAnalysis('_Analysis is currently unavailable. This feature requires the API to be running — it works in the deployed version._')
     }
     setLoading(false)
   }

@@ -1,26 +1,81 @@
 import React from 'react'
 import BenchmarkBar from './BenchmarkBar.jsx'
+import { SERENA_ARR, SERENA_STAGE } from '../data/benchmarks.js'
 
-export function getRating(val, def, arrBand) {
-  if (val === undefined || val === null || val === '') return 'empty'
-  const d = def.arr[arrBand]
-  if (!d) return 'empty'
-  const p25 = d.bi[0] !== null ? d.bi[0] : d.ha[0]
-  const med  = d.bi[1] !== null ? d.bi[1] : d.ha[1]
-  const p75  = d.bi[2] !== null ? d.bi[2] : d.ha[2]
-  if (med === null) return 'empty'
+// Score a single [p25, median, p75] triplet against a value
+// Returns 'top'|'above'|'below'|'bottom'|null
+function scoreSource(val, triplet, lowerIsBetter) {
+  if (!triplet) return null
+  const [p25, median, p75] = triplet
+  if (median === null) return null
   const v = parseFloat(val)
-  if (!def.lowerIsBetter) {
+  if (!lowerIsBetter) {
     if (p75 !== null && v >= p75) return 'top'
-    if (v >= med)                  return 'above'
+    if (v >= median)               return 'above'
     if (p25 !== null && v >= p25)  return 'below'
     return 'bottom'
   } else {
     if (p25 !== null && v <= p25) return 'top'
-    if (v <= med)                  return 'above'
+    if (v <= median)               return 'above'
     if (p75 !== null && v <= p75)  return 'below'
     return 'bottom'
   }
+}
+
+const QUARTILE_SCORE = { top: 4, above: 3, below: 2, bottom: 1 }
+const SCORE_QUARTILE = { 4: 'top', 3: 'above', 2: 'below', 1: 'bottom' }
+
+export function getRating(val, def, arrBand, acvBand, pricingModel, fundingStage, name) {
+  if (val === undefined || val === null || val === '') return 'empty'
+  const votes = []
+
+  // 1. Benchmark.it ARR
+  const d = def.arr?.[arrBand]
+  if (d) {
+    const biTriplet = d.bi?.some(x => x !== null) ? d.bi : null
+    const haTriplet = d.ha?.some(x => x !== null) ? d.ha : null
+    const bi = scoreSource(val, biTriplet, def.lowerIsBetter)
+    if (bi) votes.push(bi)
+    const ha = scoreSource(val, haTriplet, def.lowerIsBetter)
+    if (ha) votes.push(ha)
+  }
+
+  // 2. Serena ARR — skip if P25 and P75 are both null (median-only)
+  if (name) {
+    const serenaArr = SERENA_ARR[name]?.[arrBand]
+    if (serenaArr && !(serenaArr[0] === null && serenaArr[2] === null)) {
+      const s = scoreSource(val, serenaArr, def.lowerIsBetter)
+      if (s) votes.push(s)
+    }
+
+    // 3. Serena funding stage — skip if median-only
+    if (fundingStage && fundingStage !== 'Not specified') {
+      const serenaSt = SERENA_STAGE[name]?.[fundingStage]
+      if (serenaSt && !(serenaSt[0] === null && serenaSt[2] === null)) {
+        const s = scoreSource(val, serenaSt, def.lowerIsBetter)
+        if (s) votes.push(s)
+      }
+    }
+  }
+
+  // 4. Benchmark.it ACV
+  if (acvBand && def.acv?.[acvBand]) {
+    const s = scoreSource(val, def.acv[acvBand], def.lowerIsBetter)
+    if (s) votes.push(s)
+  }
+
+  // 5. Benchmark.it pricing model
+  if (pricingModel && def.pm?.[pricingModel]) {
+    const s = scoreSource(val, def.pm[pricingModel], def.lowerIsBetter)
+    if (s) votes.push(s)
+  }
+
+  if (votes.length === 0) return 'empty'
+
+  // Average numeric scores and snap to nearest quartile
+  const avg = votes.reduce((sum, v) => sum + QUARTILE_SCORE[v], 0) / votes.length
+  const snapped = Math.round(avg)
+  return SCORE_QUARTILE[Math.max(1, Math.min(4, snapped))]
 }
 
 const BADGE = {
@@ -32,14 +87,13 @@ const BADGE = {
 }
 
 export default function MetricCard({ name, def, arrBand, acvBand, pricingModel, fundingStage, yourVal, onValueChange }) {
-  const rating  = getRating(yourVal, def, arrBand)
+  const rating  = getRating(yourVal, def, arrBand, acvBand, pricingModel, fundingStage, name)
   const badge   = BADGE[rating]
   const numVal  = yourVal !== undefined && yourVal !== '' ? parseFloat(yourVal) : undefined
   const dispVal = numVal !== undefined
     ? (Math.abs(numVal) < 10 ? +numVal.toFixed(1) : Math.round(numVal))
     : null
 
-  // Pass name down so BenchmarkBar can look up Serena data by metric name
   const defWithName = { ...def, name }
 
   return (

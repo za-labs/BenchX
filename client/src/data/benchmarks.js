@@ -105,7 +105,7 @@ export const METRICS = {
     },
   },
   'R&D as % of Revenue': {
-    unit: '%', lowerIsBetter: false, category: 'Spend', placeholder: '—',
+    unit: '%', lowerIsBetter: true, category: 'Spend', placeholder: '—',
     description: 'R&D / engineering spend as % of total revenue',
     arr: {
       '<$1M':     { bi: [null, null, null], ha: [23, 43, 76] },

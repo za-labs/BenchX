@@ -4,7 +4,7 @@
 
 BenchX is a free benchmarking dashboard for SaaS founders, CEOs, and finance teams. Enter your key metrics, select your peer group, and instantly see how you stack up against hundreds of real SaaS companies — plus get AI-powered analysis and recommendations tailored to your profile.
 
-🔗 **Live tool: [mizab.io](https://mizab.io)**
+🔗 **Live tool: [benchx.mizab.io](https://benchx.mizab.io)**
 
 ---
 
@@ -101,6 +101,6 @@ npm run build
 
 ## About
 
-BenchX is built by [Mizab](https://mizab.io) to help SaaS operators make better decisions with the right context.
+BenchX is built by [Mizab](https://mizab.io).
 
 For questions or feedback, visit [mizab.io](https://mizab.io).
