@@ -1,6 +1,6 @@
 import React from 'react'
 import BenchmarkBar from './BenchmarkBar.jsx'
-import { SERENA_ARR, SERENA_STAGE } from '../data/benchmarks.js'
+import { SERENA_ARR, SERENA_STAGE, PRIMARY_SOLUTION } from '../data/benchmarks.js'
 
 // Score a single [p25, median, p75] triplet against a value
 // Returns 'top'|'above'|'below'|'bottom'|null
@@ -25,11 +25,11 @@ function scoreSource(val, triplet, lowerIsBetter) {
 const QUARTILE_SCORE = { top: 4, above: 3, below: 2, bottom: 1 }
 const SCORE_QUARTILE = { 4: 'top', 3: 'above', 2: 'below', 1: 'bottom' }
 
-export function getRating(val, def, arrBand, acvBand, pricingModel, fundingStage, name) {
+export function getRating(val, def, arrBand, acvBand, pricingModel, fundingStage, name, gtmScope, productDomain) {
   if (val === undefined || val === null || val === '') return 'empty'
   const votes = []
 
-  // 1. Benchmark.it ARR
+  // 1. benchmarkit.ai ARR
   const d = def.arr?.[arrBand]
   if (d) {
     const biTriplet = d.bi?.some(x => x !== null) ? d.bi : null
@@ -58,16 +58,34 @@ export function getRating(val, def, arrBand, acvBand, pricingModel, fundingStage
     }
   }
 
-  // 4. Benchmark.it ACV
+  // 4. benchmarkit.ai ACV
   if (acvBand && def.acv?.[acvBand]) {
     const s = scoreSource(val, def.acv[acvBand], def.lowerIsBetter)
     if (s) votes.push(s)
   }
 
-  // 5. Benchmark.it pricing model
+  // 5. benchmarkit.ai pricing model
   if (pricingModel && def.pm?.[pricingModel]) {
     const s = scoreSource(val, def.pm[pricingModel], def.lowerIsBetter)
     if (s) votes.push(s)
+  }
+
+  // 6. benchmarkit.ai GTM scope
+  if (name && gtmScope && gtmScope !== 'Not specified') {
+    const gtmTrio = PRIMARY_SOLUTION[name]?.[gtmScope]
+    if (gtmTrio && !(gtmTrio[0] === null && gtmTrio[2] === null)) {
+      const s = scoreSource(val, gtmTrio, def.lowerIsBetter)
+      if (s) votes.push(s)
+    }
+  }
+
+  // 7. benchmarkit.ai Product Domain
+  if (name && productDomain && productDomain !== 'Not specified') {
+    const domainTrio = PRIMARY_SOLUTION[name]?.[productDomain]
+    if (domainTrio && !(domainTrio[0] === null && domainTrio[2] === null)) {
+      const s = scoreSource(val, domainTrio, def.lowerIsBetter)
+      if (s) votes.push(s)
+    }
   }
 
   if (votes.length === 0) return 'empty'
@@ -86,8 +104,8 @@ const BADGE = {
   empty:  { label: 'Enter a value',   bg: 'rgba(128,128,128,0.12)', color: '#6b7280' },
 }
 
-export default function MetricCard({ name, def, arrBand, acvBand, pricingModel, fundingStage, yourVal, onValueChange }) {
-  const rating  = getRating(yourVal, def, arrBand, acvBand, pricingModel, fundingStage, name)
+export default function MetricCard({ name, def, arrBand, acvBand, pricingModel, fundingStage, gtmScope, productDomain, yourVal, onValueChange }) {
+  const rating  = getRating(yourVal, def, arrBand, acvBand, pricingModel, fundingStage, name, gtmScope, productDomain)
   const badge   = BADGE[rating]
   const numVal  = yourVal !== undefined && yourVal !== '' ? parseFloat(yourVal) : undefined
   const dispVal = numVal !== undefined
@@ -142,6 +160,7 @@ export default function MetricCard({ name, def, arrBand, acvBand, pricingModel, 
         def={defWithName}
         arrBand={arrBand} acvBand={acvBand}
         pricingModel={pricingModel} fundingStage={fundingStage}
+        gtmScope={gtmScope} productDomain={productDomain}
         yourVal={numVal}
       />
     </div>

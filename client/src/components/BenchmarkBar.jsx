@@ -1,13 +1,15 @@
 import React from 'react'
-import { SERENA_ARR, SERENA_STAGE } from '../data/benchmarks.js'
+import { SERENA_ARR, SERENA_STAGE, PRIMARY_SOLUTION } from '../data/benchmarks.js'
 
 const COLORS = {
-  bi:    '#378ADD',
-  ha:    '#4ade80',
-  acv:   '#a78bfa',
-  pm:    '#fbbf24',
+  bi:          '#378ADD',
+  ha:          '#4ade80',
+  acv:         '#a78bfa',
+  pm:          '#fbbf24',
   serenaArr:   '#fb7185',
   serenaStage: '#fb7185',
+  gtm:         '#06b6d4',
+  domain:      '#f97316',
 }
 
 function fmt(v) {
@@ -35,19 +37,20 @@ function Bar({ label, color, trio, yourVal, dashed }) {
   const p75Pct = hasP75 ? pct(p75) : null
   const yPct   = yourVal !== undefined ? pct(yourVal) : null
 
+  const fillStyle = {
+    position: 'absolute', top: 0, height: '100%', borderRadius: 3,
+    left: `${fillL.toFixed(1)}%`, width: `${Math.max(fillW, 0).toFixed(1)}%`,
+    background: color, opacity: dashed ? 0.45 : 0.75,
+    WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact',
+  }
+
   return (
     <div style={{ marginBottom: 18 }}>
       <div style={{ fontSize: '0.68rem', color: 'var(--text-3)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-
         {label}
       </div>
       <div style={{ position: 'relative', height: 14, background: 'var(--bg-4)', borderRadius: 3 }}>
-        <div style={{
-          position: 'absolute', top: 0, height: '100%', borderRadius: 3,
-          left: `${fillL.toFixed(1)}%`, width: `${Math.max(fillW, 0).toFixed(1)}%`,
-          background: color, opacity: dashed ? 0.45 : 0.75,
-          WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact',
-        }} />
+        <div style={fillStyle} />
         <div style={{
           position: 'absolute', top: 0, width: 2, height: '100%',
           background: 'rgba(255,255,255,0.75)', left: `${medPct.toFixed(1)}%`,
@@ -82,22 +85,31 @@ function Bar({ label, color, trio, yourVal, dashed }) {
   )
 }
 
-export default function BenchmarkBar({ def, arrBand, acvBand, pricingModel, fundingStage, yourVal }) {
+export default function BenchmarkBar({ def, arrBand, acvBand, pricingModel, fundingStage, gtmScope, productDomain, yourVal }) {
   const d = def.arr[arrBand] || { bi: [null, null, null], ha: [null, null, null] }
 
   const serenaArrTrio = SERENA_ARR[def.name ?? '']?.[arrBand] ?? null
   const isSpend = def.category === 'Spend'
-  const serenaStage   = !isSpend && fundingStage && fundingStage !== 'Not specified'
+  const serenaStage = !isSpend && fundingStage && fundingStage !== 'Not specified'
     ? SERENA_STAGE[def.name ?? '']?.[fundingStage] ?? null
     : null
 
+  const gtmTrio    = gtmScope && gtmScope !== 'Not specified'
+    ? PRIMARY_SOLUTION[def.name ?? '']?.[gtmScope] ?? null
+    : null
+  const domainTrio = productDomain && productDomain !== 'Not specified'
+    ? PRIMARY_SOLUTION[def.name ?? '']?.[productDomain] ?? null
+    : null
+
   const bars = [
-    { label: 'Benchmark.it (by ARR)', color: COLORS.bi,  trio: d.bi },
-    { label: 'High Alpha (by ARR)',   color: COLORS.ha,  trio: d.ha },
-    ...(def.acv?.[acvBand]     ? [{ label: `Benchmark.it (ACV: ${acvBand})`,   color: COLORS.acv, trio: def.acv[acvBand] }] : []),
-    ...(def.pm?.[pricingModel] ? [{ label: `Benchmark.it (${pricingModel})`,   color: COLORS.pm,  trio: def.pm[pricingModel] }] : []),
-    ...(serenaArrTrio           ? [{ label: 'Serena (by ARR)',   color: COLORS.serenaArr, trio: serenaArrTrio, dashed: true }] : []),
+    { label: 'benchmarkit.ai (by ARR)', color: COLORS.bi,  trio: d.bi },
+    { label: 'High Alpha (by ARR)',      color: COLORS.ha,  trio: d.ha },
+    ...(def.acv?.[acvBand]     ? [{ label: `benchmarkit.ai (ACV: ${acvBand})`,   color: COLORS.acv, trio: def.acv[acvBand] }] : []),
+    ...(def.pm?.[pricingModel] ? [{ label: `benchmarkit.ai (${pricingModel})`,   color: COLORS.pm,  trio: def.pm[pricingModel] }] : []),
+    ...(serenaArrTrio           ? [{ label: 'Serena (by ARR)',   color: COLORS.serenaArr,   trio: serenaArrTrio,  dashed: true }] : []),
     ...(serenaStage             ? [{ label: `Serena (${fundingStage})`, color: COLORS.serenaStage, trio: serenaStage, dashed: false }] : []),
+    ...(gtmTrio    ? [{ label: `benchmarkit.ai (${gtmScope})`,    color: COLORS.gtm,    trio: gtmTrio    }] : []),
+    ...(domainTrio ? [{ label: `benchmarkit.ai (${productDomain})`, color: COLORS.domain, trio: domainTrio }] : []),
   ]
 
   return (

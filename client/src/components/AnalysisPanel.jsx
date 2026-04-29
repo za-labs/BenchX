@@ -22,7 +22,7 @@ function cleanMarkdown(raw) {
   return s
 }
 
-export default function AnalysisPanel({ userVals, arrBand, acvBand, pricingModel, fundingStage, metrics, additionalContext, buildShareUrl }) {
+export default function AnalysisPanel({ userVals, arrBand, acvBand, pricingModel, fundingStage, metrics, gtmScope, productDomain, additionalContext, buildShareUrl }) {
   const [analysis, setAnalysis]         = useState('')
   const [loading, setLoading]           = useState(false)
   const [chatMessages, setChatMessages] = useState([])
@@ -31,8 +31,8 @@ export default function AnalysisPanel({ userVals, arrBand, acvBand, pricingModel
   const [showChat, setShowChat]         = useState(false)
   const [copyMsg, setCopyMsg]           = useState('')
   const [questionCount, setQuestionCount] = useState(0)
+  const [lastBenchmarks, setLastBenchmarks] = useState(null)
   const MAX_QUESTIONS = 5
-  // No scroll refs needed — we never auto-scroll
 
   const filledCount = Object.values(userVals).filter(v => v !== undefined && v !== '').length
 
@@ -42,12 +42,13 @@ export default function AnalysisPanel({ userVals, arrBand, acvBand, pricingModel
     setShowChat(false)
     setChatMessages([])
     setQuestionCount(0)
-    const benchmarks = getBenchmarkSummary(metrics, arrBand)
+    const benchmarks = getBenchmarkSummary(metrics, arrBand, gtmScope, productDomain)
+    setLastBenchmarks(benchmarks)
     try {
       const res = await fetch(`${API}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ metrics: userVals, arrBand, acvBand, pricingModel, fundingStage, benchmarks, additionalContext }),
+        body: JSON.stringify({ metrics: userVals, arrBand, acvBand, pricingModel, fundingStage, gtmScope, productDomain, benchmarks, additionalContext }),
       })
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
@@ -70,7 +71,7 @@ export default function AnalysisPanel({ userVals, arrBand, acvBand, pricingModel
         }
       }
     } catch {
-      setAnalysis('_Analysis is currently unavailable. This feature requires the API to be running — it works in the deployed version._')
+      setAnalysis('_Analysis is currently unavailable. This feature requires the API to be running. It works in the deployed version._')
     }
     setLoading(false)
   }
@@ -89,7 +90,7 @@ export default function AnalysisPanel({ userVals, arrBand, acvBand, pricingModel
       const res = await fetch(`${API}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages, metrics: userVals, arrBand, fundingStage }),
+        body: JSON.stringify({ messages: newMessages, metrics: userVals, arrBand, acvBand, pricingModel, fundingStage, gtmScope, productDomain, benchmarks: lastBenchmarks }),
       })
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
@@ -212,7 +213,7 @@ export default function AnalysisPanel({ userVals, arrBand, acvBand, pricingModel
             ) : (
               <div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-3)', marginBottom: 10 }}>
-                  Ask anything about your metrics — has context on your numbers and ARR band.
+                  Ask anything about your metrics — has full context on your numbers and benchmark comparisons.
                 </div>
                 {/* Chat messages — fixed height, user scrolls freely, no auto-scroll */}
                 <div style={{

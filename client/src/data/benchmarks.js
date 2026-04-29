@@ -1,4 +1,4 @@
-// All benchmark data normalized from Benchmark.it (CY-24), High Alpha (2025), ICONIQ
+// All benchmark data normalized from benchmarkit.ai (CY-24), High Alpha (2025), ICONIQ
 
 export const METRICS = {
   'YoY Growth Rate': {
@@ -191,16 +191,20 @@ export const ARR_TO_ICONIQ = {
 }
 
 // Build benchmark summary for API prompt
-export function getBenchmarkSummary(metrics, arrBand) {
+export function getBenchmarkSummary(metrics, arrBand, gtmScope, productDomain) {
   const result = {}
   Object.entries(metrics).forEach(([name, def]) => {
     const d = def.arr[arrBand]
     if (!d) return
     const serenaArr = SERENA_ARR[name]?.[arrBand] ?? null
+    const gtmTrio   = gtmScope && gtmScope !== 'Not specified' ? PRIMARY_SOLUTION[name]?.[gtmScope] ?? null : null
+    const domainTrio= productDomain && productDomain !== 'Not specified' ? PRIMARY_SOLUTION[name]?.[productDomain] ?? null : null
     result[name] = {
       bi:     { p25: d.bi[0], median: d.bi[1], p75: d.bi[2] },
       ha:     { p25: d.ha[0], median: d.ha[1], p75: d.ha[2] },
-      serena: serenaArr ? { p25: serenaArr[0], median: serenaArr[1], p75: serenaArr[2] } : null,
+      serena: serenaArr  ? { p25: serenaArr[0],  median: serenaArr[1],  p75: serenaArr[2]  } : null,
+      gtm:    gtmTrio    ? { p25: gtmTrio[0],    median: gtmTrio[1],    p75: gtmTrio[2]    } : null,
+      domain: domainTrio ? { p25: domainTrio[0], median: domainTrio[1], p75: domainTrio[2] } : null,
     }
   })
   return result
@@ -214,6 +218,117 @@ export const FUNDING_STAGES = [
   'Series B',
   'Series C+',
 ]
+
+export const GTM_SCOPES = [
+  'Not specified',
+  'Vertical App',
+  'Horizontal App',
+  'Vertical Marketplace',
+]
+
+export const PRODUCT_DOMAINS = [
+  'Not specified',
+  'Infrastructure',
+  'Cyber Security',
+  'Fintech',
+  'AI Native',
+]
+
+// Primary Solution benchmarks from benchmarkit.ai [P25, Median, P75]
+// Keyed by metric name -> segment -> [p25, median, p75]
+// Segments are GTM Scopes and Product Domains combined
+export const PRIMARY_SOLUTION = {
+  'YoY Growth Rate': {
+    'Vertical App':        [13, 26, 50],
+    'Horizontal App':      [12, 26, 44],
+    'Vertical Marketplace':[0,  4,  50],
+    'Cyber Security':      [11, 15, 42],
+    'Fintech':             [20, 40, 150],
+  },
+  'Gross Revenue Retention': {
+    'Vertical App':        [82, 89, 94],
+    'Horizontal App':      [76, 85, 91],
+    'Vertical Marketplace':[65, 73, 91],
+    'AI Native':           [88, 96, 98],
+    'Infrastructure':      [80, 88, 92],
+    'Cyber Security':      [80, 85, 89],
+    'Fintech':             [84, 90, 98],
+  },
+  'Net Revenue Retention': {
+    'Vertical App':        [96,  102, 114],
+    'Horizontal App':      [95,  100, 108],
+    'Vertical Marketplace':[80,  110, 112],
+    'AI Native':           [100, 109, 130],
+    'Infrastructure':      [90,  101, 102],
+    'Cyber Security':      [95,  102, 116],
+    'Fintech':             [96,  103, 112],
+  },
+  'Software Gross Margin': {
+    'Vertical App':        [69, 76, 82],
+    'Horizontal App':      [70, 79, 84],
+    'Vertical Marketplace':[58, 74, 87],
+    'AI Native':           [76, 80, 85],
+    'Infrastructure':      [66, 71, 75],
+    'Cyber Security':      [69, 81, 82],
+    'Fintech':             [60, 68, 78],
+  },
+  'CAC Payback (months)': {
+    'Vertical App':        [10, 16, 22],
+    'Horizontal App':      [12, 19, 23],
+    'Vertical Marketplace':[13, 20, 26],
+    'Cyber Security':      [18, 23, 26],
+    'Fintech':             [7,  12, 23],
+  },
+  'S&M as % of Revenue': {
+    'Vertical App':        [27, 35, 51],
+    'Horizontal App':      [23, 37, 48],
+    'Vertical Marketplace':[16, 35, 55],
+    'Infrastructure':      [50, 64, 72],
+    'Cyber Security':      [50, 55, 85],
+    'Fintech':             [9,  32, 51],
+  },
+  'R&D as % of Revenue': {
+    'Vertical App':        [25, 36, 45],
+    'Horizontal App':      [18, 27, 39],
+    'Vertical Marketplace':[14, 20, 29],
+    'Infrastructure':      [33, 99, 127],
+    'Cyber Security':      [34, 40, 47],
+    'Fintech':             [29, 47, 59],
+  },
+  'Rule of 40': {
+    'Vertical App':        [-9,  10, 35],
+    'Horizontal App':      [4,   24, 36],
+    'Vertical Marketplace':[8,   27, 62],
+    'Cyber Security':      [-21, -4, 27],
+    'Fintech':             [-20, 2,  15],
+  },
+  'ARR per Employee ($K)': {
+    'Vertical App':        [78.049, 140,    189.886],
+    'Horizontal App':      [116,    170,    232],
+    'Vertical Marketplace':[90,     93.333, 150],
+    'AI Native':           [100,    100,    250],
+    'Infrastructure':      [175,    190.1,  210],
+    'Cyber Security':      [114.204,143.963,247],
+    'Fintech':             [50,     132.441,174.938],
+  },
+  'Burn Multiple': {
+    'Vertical App':        [-0.2, 1.0, 2.7],
+    'Horizontal App':      [0.9,  2.0, 3.2],
+    'Vertical Marketplace':[0.1,  1.0, 4.0],
+    'AI Native':           [0.3,  2.0, 2.6],
+    'Infrastructure':      [-4.8, -3.2, 1.0],
+    'Cyber Security':      [1.1,  1.7, 5.4],
+    'Fintech':             [0.7,  1.8, 2.7],
+  },
+  'CLTV:CAC Ratio': {
+    'Vertical App':        [2.5, 3.5, 6.0],
+    'Horizontal App':      [2.5, 3.1, 5.0],
+    'Vertical Marketplace':[2.2, 3.0, 8.7],
+    'Infrastructure':      [3.0, 3.4, 8.0],
+    'Cyber Security':      [2.8, 3.2, 4.4],
+    'Fintech':             [3.0, 4.4, 6.0],
+  },
+}
 
 // Serena ARR bands map to our bands approximately
 // Serena: <1M€, 1-5M€, 5-10M€, >10M€
